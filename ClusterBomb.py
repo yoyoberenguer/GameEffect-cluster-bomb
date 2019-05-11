@@ -13,8 +13,8 @@
  of this license document, but changing it is not allowed.
  """
 from math import radians, cos, sin, degrees, ceil, floor
-from random import uniform, randint
-
+from random import uniform, randint, seed
+import os
 import numpy as numpy
 
 from BindSprite import *
@@ -122,6 +122,7 @@ class GenericAnimation(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=center_)
         self.index = 0
         self.start = gl_.FRAME          # FRAME number when the sprite is instantiated
+        seed(os.urandom(100))
         self.stop = randint(50, 1000)   # Random integer (frames)
 
         # Avoid putting sprite on the top of each other
@@ -237,9 +238,7 @@ def check_background(gl_, center_):
     """
     Check if a sprite can or cannot be display.
     Goes through the entire list of sprites in the group <All> and keep only the sprite(s) colliding
-    at the position (center_), then determine their layer number.
-    This function avoid to display bomb explosions and craters into deep space.
-
+    at the position given by the tuple center_.
     :param gl_: Global variable (class)
     :param center_: (Tuple representing the sprite center)
     """
@@ -289,7 +288,7 @@ def check_background(gl_, center_):
             else:
                 # check on rectangle collision instead of mask collision.
                 # The surface is possibly a 32bit with per-pixel info but has been converted to fast blit
-                # get_alpha() returning the value 255 (most likely to be converted).
+                # get_alpha() returning the value 255 (most likely to be stripped of alpha values with convert()).
                 # Checking for rect collision and stop to the first collision (break)
                 if pygame.sprite.collide_rect(crater_sprite, sprite):
                     collide = True
@@ -442,6 +441,7 @@ def bombing(rect_,
         GL.All.change_layer(bombsprite, layer_)
 
     bombsprite._layer = layer_
+    seed(os.urandom(100))
     angle_ = radians(randint(0, 360))
     bombsprite.angle = degrees(angle_) - 90
     bombsprite.image = pygame.transform.rotate(surface_, bombsprite.angle)
@@ -499,11 +499,27 @@ if __name__ == '__main__':
 
 
     class Player(pygame.sprite.Sprite):
+        """
+            Display the aircraft on the screen
+        """
 
         images = None
         containers = None
 
-        def __init__(self, pos_, gl_, timing_=15, layer_=0):
+        def __init__(self,
+                     pos_,
+                     gl_,
+                     timing_=15,
+                     layer_=0
+                     ):
+            """
+
+            :param pos_:     Tuple representing the player position
+            :param gl_:      Global variables
+            :param timing_:  Sprite refreshing time
+            :param layer_:   Sprite layer
+            """
+
             pygame.sprite.Sprite.__init__(self, Player.containers)
 
             self.image = Player.images
@@ -514,9 +530,9 @@ if __name__ == '__main__':
             self.layer = layer_
             self.timing = timing_
             self.angle = 0
-            self.life = 1000
-            self.max_life = 1000
-            self._rotation = 0
+            self.life = 1000        # Player life
+            self.max_life = 1000    # Player Max life
+            self._rotation = 0      # Rotation value
 
         def update(self):
             self.rect = self.rect.clamp(SCREENRECT)
@@ -530,16 +546,19 @@ if __name__ == '__main__':
     pygame.init()
     pygame.mixer.pre_init(44100, 16, 2, 4095)
 
+    # *** Bomb sprite
     bomb = pygame.image.load('Assets\\MISSILE3.png').convert_alpha()
     w, h = bomb.get_size()
     bomb = pygame.transform.smoothscale(bomb, (int(w / 30), int(h / 30)))
+
+    # *** Explosions sprites
     EXPLOSION1 = spread_sheet_fs8('Assets\\Explosion8_256x256_.png', 256, 6, 6)
     EXPLOSION2 = spread_sheet_fs8('Assets\\Explosion9_256x256_.png', 256, 6, 8)
     EXPLOSION3 = spread_sheet_fs8('Assets\\Explosion10_256x256_.png', 256, 6, 7)
     EXPLOSION4 = spread_sheet_fs8('Assets\\Explosion11_256x256_.png', 256, 6, 7)
     EXPLOSION5 = spread_sheet_fs8('Assets\\Explosion12_256x256_.png', 256, 6, 7)
-    TRY = spread_sheet_fs8('Assets\\Explosion12_256x256_.png', 256, 6, 7)
-    TRY = reshape(TRY, (256, 256))
+    EXPLOSION6 = spread_sheet_fs8('Assets\\Explosion12_256x256_.png', 256, 6, 7)
+    EXPLOSION6 = reshape(EXPLOSION6, (256, 256))
     rnd = randint(128, 256)
     EXPLOSION1 = reshape(EXPLOSION1, (rnd, rnd))
     rnd = randint(128, 256)
@@ -550,19 +569,24 @@ if __name__ == '__main__':
     EXPLOSION4 = reshape(EXPLOSION4, (rnd, rnd))
     rnd = randint(128, 256)
     EXPLOSION5 = reshape(EXPLOSION5, (rnd, rnd))
-    # EXPLOSIONS = [EXPLOSION1, EXPLOSION2, EXPLOSION3, EXPLOSION4, EXPLOSION5]
-    EXPLOSIONS = [TRY]
+    EXPLOSIONS = [EXPLOSION6]   # EXPLOSIONS = [EXPLOSION1, EXPLOSION2, EXPLOSION3, EXPLOSION4, EXPLOSION5]
+
+    # *** Explosions Sounds
     EXPLOSION_SOUND1 = pygame.mixer.Sound('Assets\\boom3.ogg')
     EXPLOSION_SOUND2 = pygame.mixer.Sound('Assets\\boom1.ogg')
     EXPLOSION_SOUND3 = pygame.mixer.Sound('Assets\\boom2.ogg')
     EXPLOSION_SOUND4 = pygame.mixer.Sound('Assets\\boom2.ogg')
     EXPLOSION_SOUND = [EXPLOSION_SOUND1, EXPLOSION_SOUND2, EXPLOSION_SOUND3, EXPLOSION_SOUND4]
+
+    # *** Bomb release sound
+    BOMB_RELEASE = pygame.mixer.Sound('Assets\\sd_bomb_release1.ogg')
+
+    # *** Craters (with magma and cold)
     CRATER_COLD = pygame.image.load('Assets\\Crater3_.png').convert()
     CRATER_COLD = pygame.transform.smoothscale(CRATER_COLD, (32, 32))
     CRATER = pygame.image.load('Assets\\Crater2_.png')
     CRATER = pygame.transform.smoothscale(CRATER, (32, 32)).convert_alpha()
     CRATER_MASK = pygame.mask.from_surface(CRATER)
-    BOMB_RELEASE = pygame.mixer.Sound('Assets\\sd_bomb_release1.ogg')
     SMOKE = spread_sheet_fs8('Assets\\Laval1_256_6x6_.png', 256, 6, 6)
     SMOKE = reshape(SMOKE, (32, 32))
 
@@ -590,7 +614,6 @@ if __name__ == '__main__':
     bck1._layer = -9
     GL.All.add(bck1)
 
-
     VERTEX_BOMB = pygame.sprite.Group()
     VERTEX_DEBRIS = pygame.sprite.Group()
 
@@ -602,6 +625,7 @@ if __name__ == '__main__':
     GL.SC_explosion = SoundControl(60)
     GL.SOUND_LEVEL = 1.0
 
+    # *** Debris sprites
     G5V200_DEBRIS = [
         pygame.image.load('Assets\\Boss7Debris\\Boss7Debris1.png').convert_alpha(),
         pygame.image.load('Assets\\Boss7Debris\\Boss7Debris2.png').convert_alpha(),
@@ -627,6 +651,7 @@ if __name__ == '__main__':
     STINGER_MISSILE_SPRITE = pygame.image.load('Assets\\MISSILE0.png').convert_alpha()
     COBRA = pygame.image.load('Assets\\SpaceShip.png').convert_alpha()
 
+    # *** Halo sprites
     steps = numpy.array([0., 0.03333333, 0.06666667, 0.1, 0.13333333,
                          0.16666667, 0.2, 0.23333333, 0.26666667, 0.3,
                          0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667,
@@ -692,7 +717,7 @@ if __name__ == '__main__':
     em = pygame.sprite.Group()
     hm = pygame.sprite.Group()
 
-    recording = False  # allow recording video
+    recording = True  # allow recording video
     VIDEO = []  # Capture frames
     trumble = 2
     while not STOP_GAME:
@@ -788,6 +813,7 @@ if __name__ == '__main__':
         GL.FRAME += 1
         pygame.event.clear()
 
+    # *** Record the video
     if recording:
         import cv2
         from cv2 import COLOR_RGBA2BGR
