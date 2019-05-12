@@ -12,10 +12,13 @@
 
  of this license document, but changing it is not allowed.
  """
+
 from math import radians, cos, sin, degrees, ceil, floor
 from random import uniform, randint, seed
-import os
-import numpy as numpy
+from os import urandom
+
+from numpy import uint8, fromstring, array
+
 
 from BindSprite import *
 from SpriteSheet import spread_sheet_fs8, load_per_pixel, spread_sheet_per_pixel
@@ -122,7 +125,7 @@ class GenericAnimation(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=center_)
         self.index = 0
         self.start = gl_.FRAME          # FRAME number when the sprite is instantiated
-        seed(os.urandom(100))
+        seed(urandom(100))
         self.stop = randint(50, 1000)   # Random integer (frames)
 
         # Avoid putting sprite on the top of each other
@@ -169,17 +172,17 @@ def show_debris(screen_):
     # All debris are slowing down after explosion
     # Display all the debris onto the game screen and refresh sprite position every frames.
     # This method has to be called every frame from the main loop after the method debris.
-    # Each debris will be display full speed after blast, but will follow a deceleration
-    # over the time.
     for p_ in VERTEX_DEBRIS:
         # move the rectangle in the vector direction
         p_.rect.move_ip(p_.vector)
         # calculate the sprite size
         w, h = p_.image.get_size()
+
+        # THIS IS NOW DRAW FROM THE MAIN LOOP
         # display the sprite (debris) with the blend additive mode
-        screen_.blit(p_.image, (p_.rect.centerx - (w / 2),
-                                p_.rect.centery - (h / 2)),
-                     special_flags=p_._blend if p_._blend is not None else 0)
+        # screen_.blit(p_.image, (p_.rect.centerx - (w / 2),
+        #                        p_.rect.centery - (h / 2)),
+        #             special_flags=p_._blend if p_._blend is not None else 0)
 
         try:
             # decrease the sprite size
@@ -196,15 +199,16 @@ def show_debris(screen_):
         p_.index += 1
 
 
-def debris(rect_):
+def debris(rect_, gl_, layer_):
     """
     Create debris / fragments flying around after an explosion.
     :param rect_: pygame.Rect that represent the debris size and shapes
     """
     # Choose debris randomly from the list EXPLOSION_DEBRIS.
-    # This method is adding debris sprites into the group VERTEX_DEBRIS
+    # This method is adding debris sprites into the group VERTEX_DEBRIS and GL.ALL
     # the sprites need to have following attributes
     # _blend : choose additive mode
+    # _layer : layer to use
     # image  : pygame.Surface (texture used)
     # rect   : pygame.Rect (rectangle)
     # vector : pygame.math.Vector2, velocity vector (sprite direction)
@@ -221,6 +225,14 @@ def debris(rect_):
         return
 
     sprite_ = pygame.sprite.Sprite()
+
+    pygame.sprite.Sprite.__init__(sprite_, gl_.All)
+
+    gl_.All.add(sprite_)
+    if isinstance(gl_.All, pygame.sprite.LayeredUpdates):
+        gl_.All.change_layer(sprite_, layer_)
+
+    sprite_._layer = layer_
 
     image = EXPLOSION_DEBRIS[randint(0, len(EXPLOSION_DEBRIS) - 1)]
     sprite_.position = pygame.math.Vector2(rect_.centerx, rect_.centery)
@@ -365,7 +377,7 @@ def display_bombing(screen):
 
                 # create flying debris for each bomb (5 debris)
                 for r in range(10):
-                    debris(sprite.rect)
+                    debris(sprite.rect, GL, -2)
 
                 """
                 BindSprite.images = RADIAL
@@ -441,7 +453,7 @@ def bombing(rect_,
         GL.All.change_layer(bombsprite, layer_)
 
     bombsprite._layer = layer_
-    seed(os.urandom(100))
+    seed(urandom(100))
     angle_ = radians(randint(0, 360))
     bombsprite.angle = degrees(angle_) - 90
     bombsprite.image = pygame.transform.rotate(surface_, bombsprite.angle)
@@ -569,7 +581,7 @@ if __name__ == '__main__':
     EXPLOSION4 = reshape(EXPLOSION4, (rnd, rnd))
     rnd = randint(128, 256)
     EXPLOSION5 = reshape(EXPLOSION5, (rnd, rnd))
-    EXPLOSIONS = [EXPLOSION6]   # EXPLOSIONS = [EXPLOSION1, EXPLOSION2, EXPLOSION3, EXPLOSION4, EXPLOSION5]
+    EXPLOSIONS = [EXPLOSION1, EXPLOSION2, EXPLOSION3, EXPLOSION4, EXPLOSION5]
 
     # *** Explosions Sounds
     EXPLOSION_SOUND1 = pygame.mixer.Sound('Assets\\boom3.ogg')
@@ -652,7 +664,7 @@ if __name__ == '__main__':
     COBRA = pygame.image.load('Assets\\SpaceShip.png').convert_alpha()
 
     # *** Halo sprites
-    steps = numpy.array([0., 0.03333333, 0.06666667, 0.1, 0.13333333,
+    steps = array([0., 0.03333333, 0.06666667, 0.1, 0.13333333,
                          0.16666667, 0.2, 0.23333333, 0.26666667, 0.3,
                          0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667,
                          0.5, 0.53333333, 0.56666667, 0.6, 0.63333333,
@@ -717,7 +729,7 @@ if __name__ == '__main__':
     em = pygame.sprite.Group()
     hm = pygame.sprite.Group()
 
-    recording = True  # allow recording video
+    recording = False  # allow recording video
     VIDEO = []  # Capture frames
     trumble = 2
     while not STOP_GAME:
@@ -787,6 +799,7 @@ if __name__ == '__main__':
         # background_v += pygame.math.Vector2(vibration, 0) if bomb_ else (0, 0)
         GL.BACKGROUND_VECTOR = background_v
         bck.rect.left = background_v.x if bomb_ else 0
+
         GL.All.update()
 
         GL.All.draw(SCREEN)
@@ -817,7 +830,6 @@ if __name__ == '__main__':
     if recording:
         import cv2
         from cv2 import COLOR_RGBA2BGR
-        import numpy
 
         video = cv2.VideoWriter('Bombing.avi',
                                 cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,
@@ -827,7 +839,7 @@ if __name__ == '__main__':
             pygame.event.clear()
 
         for image in VIDEO:
-            image = numpy.fromstring(image, numpy.uint8).reshape(SCREENRECT.h, SCREENRECT.w, 3)
+            image = fromstring(image, uint8).reshape(SCREENRECT.h, SCREENRECT.w, 3)
             image = cv2.cvtColor(image, COLOR_RGBA2BGR)
             video.write(image)
 
