@@ -1,7 +1,63 @@
-# Game-Effect-cluster-bomb-
-Game Effect - cluster bomb 
+
+# Game Effect - cluster bomb 
 
 Add explosions effect to your video game using the source code provided into this git page
+
+Please have also a look at the cython version to explore the same algorithm improved with 
+cython (achieving a solid 60FPS)
+
+## Python version 
+```
+Run the program ClusterBomb.py in your favorite python IDE 
+Requirement: 
+* Numpy
+* Python 3
+```
+
+## Cython version
+
+```
+Two tests version :
+
+1) ClusterMain_Collision.py 
+   This version include lines of code to detect collision with background 
+   layer (or object(s) belonging to that specific layer).
+   The cluster bomb will explose only if it touch a solid ground.
+   During the calculation, the code will determine if the bomb explosion
+   rectangle (pygame.Rect) can be completely contains inside the background 
+   object (Use per-pixel images for perfect collision).
+   
+2) ClusterMain_NoCollision.py
+   Version without background collision detection, bombs explose regardless of the 
+   background image (fastest version).
+   Bombs and background can be converted for fast blit (FPS over 100FPS).
+```
+Requirment :
+
+```
+- python > 3.0
+- numpy arrays
+- pygame with SDL version 1.2 (SDL version 2 untested)
+  Cython
+- A compiler such visual studio, MSVC, CGYWIN setup correctly
+  on your system.
+  - a C compiler for windows (Visual Studio, MinGW etc) install on your system 
+  and linked to your windows environment.
+  Note that some adjustment might be needed once a compiler is install on your system, 
+  refer to external documentation or tutorial in order to setup this process.
+  e.g https://devblogs.microsoft.com/python/unable-to-find-vcvarsall-bat/
+```
+
+Compilation : 
+```
+In a command prompt and under the directory containing the source files
+C:\>python setup_Project.py build_ext --inplace
+
+If the compilation fail, refers to the requirement section and make sure cython 
+and a C-compiler are correctly install on your system. 
+
+```
+
 
 ![alt text](https://github.com/yoyoberenguer/GameEffect/blob/master/Screendump0.png)
 ![alt text](https://github.com/yoyoberenguer/GameEffect/blob/master/Screendump1.png)
