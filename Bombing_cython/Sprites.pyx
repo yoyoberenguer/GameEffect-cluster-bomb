@@ -1,6 +1,9 @@
 ###cython: boundscheck=False, wraparound=False, nonecheck=False, cdivision=True, optimize.use_switch=True
 # encoding: utf-8
 
+# 25/11/2020 BUG FIX Fixed get_sprites_at() method #1700
+
+
 # CYTHON IS REQUIRED
 
 from pygame.time import get_ticks
@@ -816,7 +819,10 @@ cdef class LayeredUpdates(AbstractGroup):
 
         """
         cdef list _sprites = self._spritelist
-        rect = Rect(pos, (0, 0))
+        # BUG FIX FOR PYGAME 2.0
+        # Fixed get_sprites_at() method #1700
+        # changed rect = Rect(pos, (0, 0)) with rect = Rect(pos, (1, 1))
+        rect = Rect(pos, (1, 1))
         cdef list colliding_list = rect.collidelistall(_sprites)
         cdef list colliding = [_sprites[i] for i in colliding_list]
         return colliding
@@ -883,7 +889,7 @@ cdef class LayeredUpdates(AbstractGroup):
             mid += 1
         sprites.insert(mid, sprite)
         if PyObject_HasAttr(sprite, 'layer'):
-            sprite.layer = new_layer
+            sprite.layer_ = new_layer
 
         # add layer info
         sprites_layers[sprite] = new_layer
@@ -1012,7 +1018,8 @@ cdef class LayeredDirty(LayeredUpdates):
     New in pygame 1.8.0
 
     """
-    cdef public bint _clip, _use_update
+    cdef public bint _use_update
+    cdef object _clip
     cdef public float _time_threshold
     cdef public object _bgd
 

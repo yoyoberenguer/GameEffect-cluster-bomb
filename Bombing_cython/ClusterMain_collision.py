@@ -1,17 +1,27 @@
-from constants import CONSTANTS
-from pygame.event import pump, get
-from pygame.image import tostring
-from pygame.key import get_pressed
-from matplotlib import pyplot as plt
+
+try:
+    from constants import CONSTANTS
+except ImportError:
+    raise ImportError("\n<constants> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
+
+
+try:
+    from matplotlib import pyplot as plt
+except ImportError:
+    raise ImportError("\n<matplotlib> library is missing on your system."
+          "\nTry: \n   C:\\pip install matplotlib on a window command prompt.")
 
 
 try:
     import pygame
+    from pygame.event import pump, get
+    from pygame.image import tostring
+    from pygame.key import get_pressed
     from pygame.math import Vector2
     from pygame import Rect, BLEND_RGB_ADD, HWACCEL, BLEND_RGB_MAX, BLEND_RGB_MULT
     from pygame import Surface, SRCALPHA, mask, event
     from pygame.transform import rotate, scale, smoothscale
-
 
 except ImportError as e:
     print(e)
@@ -23,29 +33,57 @@ pygame.display.init()
 SCREEN        = pygame.display.set_mode(GL.SCREENRECT.size)
 GL.screen     = SCREEN
 
-from SoundServer import SoundControl
-
-from Sounds import *
-from Textures import *
-from Player import Player
-from ClusterBomb import XBomb, show_debris, damped_oscillation
-import timeit
+try:
+    from SoundServer import SoundControl
+except ImportError:
+    raise ImportError("\n<SoundServer> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
+try:
+    from Sounds import *
+except ImportError:
+    raise ImportError("\n<Sounds> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
+try:
+    from Textures import *
+except ImportError:
+    raise ImportError("\n<Textures> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
+try:
+    from Player import Player
+except ImportError:
+    raise ImportError("\n<Player> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
+try:
+    from ClusterBomb import XBomb, show_debris, damped_oscillation
+except ImportError:
+    raise ImportError("\n<ClusterBomb> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
 
 try:
    from Sprites import Sprite, LayeredUpdatesModified
    from Sprites import Group, collide_mask, collide_rect, \
        LayeredUpdates, spritecollideany, collide_rect_ratio
 except ImportError:
-    raise ImportError("\nSprites.pyd missing!.Build the project first.")
+    raise ImportError("\n<Sprites> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
 
-from numpy import array, fromstring, uint8
-
+try:
+    from numpy import array, fromstring, uint8
+except ImportError:
+    raise ImportError("\n<numpy> library is missing on your system."
+                      "\nTry: \n   C:\\pip install numpy on a window command prompt.")
 
 
 if __name__ == '__main__':
 
     pygame.init()
-    pygame.mixer.pre_init(44100, 16, 2, 4095)
+    # PYGAME >= 2.0
+    # VERSION 2.0 MIXER INDUCE A CLACK WHEN THE SOUND IS PLAY (GAIN TO HIGH WHEN PLAYED AND STOPPED)
+    if int(pygame.version.ver[0]) >= 2:
+        pygame.mixer.init(frequency=24800, size=-16, channels=2, buffer=2048, allowedchanges=0)
+    # ANY OTHER PYGAME VERSION
+    else:
+        pygame.mixer.init(frequency=24800, size=-16, channels=2, buffer=2048)
 
     # from SpriteSheet import sprite_sheet_fs8, sprite_sheet_fs8_numpy
     # print(timeit.timeit("sprite_sheet_fs8_numpy('Assets\\Explosion8_256x256_.png',  256, 6, 6)",
@@ -180,7 +218,7 @@ if __name__ == '__main__':
 
         if GL.SHOCK_WAVE:
             # shake the screen
-            SCREEN.blit(SCREEN, (damped_oscillation(GL.SHOCK_WAVE_RANGE[GL.SHOCK_WAVE_INDEX]) * 10, 0))
+            SCREEN.blit(SCREEN, (int(damped_oscillation(GL.SHOCK_WAVE_RANGE[GL.SHOCK_WAVE_INDEX]) * 10), 0))
             GL.SHOCK_WAVE_INDEX += 1
             if GL.SHOCK_WAVE_INDEX > GL.SHOCK_WAVE_LEN:
                 GL.SHOCK_WAVE = False

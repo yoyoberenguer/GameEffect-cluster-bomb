@@ -7,11 +7,22 @@ from math import floor
 from os import urandom
 from random import seed, randint, uniform
 
-from BindSprite import BindSprite
-from Sounds import EXPLOSION_SOUND
-from Textures import EXPLOSIONS, SMOKE, EXPLOSION_DEBRIS, CRATER, \
-    CRATER_MASK, CRATER_COLD, HALO_SPRITE11, HALO_SPRITE13, LIGHT
-
+try:
+    from BindSprite import BindSprite
+except ImportError:
+    raise ImportError("\n<BindSprite> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
+try:
+    from Sounds import EXPLOSION_SOUND
+except ImportError:
+    raise ImportError("\n<Sounds> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
+try:
+    from Textures import EXPLOSIONS, SMOKE, EXPLOSION_DEBRIS, CRATER, \
+        CRATER_MASK, CRATER_COLD, HALO_SPRITE11, HALO_SPRITE13, LIGHT
+except ImportError:
+    raise ImportError("\n<Textures> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
 # from libc.stdlib cimport abs
 from libc.math cimport cos, sin, atan2, sqrt, round, nearbyint, exp
 
@@ -66,7 +77,8 @@ try:
    from Sprites cimport Sprite
    from Sprites import Group, collide_mask, collide_rect, LayeredUpdates, spritecollideany, collide_rect_ratio
 except ImportError:
-    raise ImportError("\nSprites.pyd missing!.Build the project first.")
+    raise ImportError("\n<Sprites> library is missing on your system or not cynthonized."
+                      "\nTry: \n   C:\\python setup_Project.py build_ext --inplace")
 
 # TODO ELASTIC COLLISION
 
@@ -169,7 +181,7 @@ cdef class GenericAnimation(Sprite):
         int index, start, stop
         object gl, image_copy
         public object image, rect
-        public int _blend, _layer
+        public int _blend, layer_
         float dt, timing, timer
 
     def __init__(self,
@@ -187,7 +199,7 @@ cdef class GenericAnimation(Sprite):
         Sprite.__init__(self, containers_)
 
         self.gl = gl_
-        self._layer = layer_
+        self.layer_ = layer_
         self._blend = 0
 
         if isinstance(self.gl.All, LayeredUpdates):
@@ -284,7 +296,7 @@ cpdef void show_debris(gl_, float timing_=60.0):
     :return: None
     """
     cdef:
-        float timer  = 0
+        float timer  = 0.0
         float timing = 1000.0 / timing_
 
     if gl_.MAX_FPS > timing_:
@@ -306,7 +318,7 @@ cpdef void show_debris(gl_, float timing_=60.0):
 
         w  = debris_image.get_width()
         h  = debris_image.get_height()
-        c  = floor(debris_index / 20.0)
+        c  = <float>floor(debris_index / 20.0)
         w_ = <int>(w - c)
         h_ = <int>(h - c)
         if w > 1 and h >1:
@@ -338,7 +350,7 @@ cdef class XBomb(Sprite):
 
     cdef:
         public object rect, image, mask
-        public int _blend, _layer
+        public int _blend, layer_
         object image_copy, vector, position
         int angle
         float index, timer, timing, dt
@@ -349,7 +361,7 @@ cdef class XBomb(Sprite):
 
         :param gl_        : instance; Contains all the variables / constants
         :param surface_   : dict;  dict {angle:surface}, Contains all pre-calculated rotations of the bomb surface
-        :param layer_     : integer; Layer to display sprite.
+        :param layer_     : integer; layer to display sprite.
         :param timing_    : float; FPS rate default is 60 fps
         :param collision_ : bool; Detect object collision at layer level (Bomb triggers only when touching the ground)
         """
@@ -542,7 +554,9 @@ cdef class XBomb(Sprite):
 
             for sprite in level_minus_8_group:
                 image = sprite.image
-                if image.get_alpha() != 255:
+                # TODO THIS IS NOT WORKING WITH PYGAME VER 2.00
+                # if image.get_alpha() != 255:
+                if image.get_flags() & pygame.SRCALPHA == pygame.SRCALPHA:
 
                     point = collide_mask(sprite, crater_sprite)
 

@@ -57,7 +57,7 @@ cdef class BindSprite(Sprite):
 
     cdef:
         int obj_center_x, obj_center_y, index
-        public int _blend , _layer
+        public int _blend , layer_
         object images_copy, obj, gl
         public object rect, image
         float timing, dt, timer
@@ -74,13 +74,12 @@ cdef class BindSprite(Sprite):
                  str event_       =None
                  ):
 
-        self._layer = layer_
-
         Sprite.__init__(self, gl_.All)
 
         if PyObject_IsInstance(gl_.All, LayeredUpdates):
             gl_.All.change_layer(self, layer_)
 
+        self._layer       = layer_
         self.images_copy  = images_.copy()
         self.image        = images_[0] if PyObject_IsInstance(
             images_, list) else images_

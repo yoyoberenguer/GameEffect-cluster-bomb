@@ -7,6 +7,21 @@ except ImportError:
 
 
 try:
+    cimport cython
+    from cython.parallel cimport prange
+    from cpython cimport PyObject_CallFunctionObjArgs, PyObject, \
+        PyList_SetSlice, PyObject_HasAttr, PyObject_IsInstance, \
+        PyObject_CallMethod, PyObject_CallObject
+    from cpython.dict cimport PyDict_DelItem, PyDict_Clear, PyDict_GetItem, PyDict_SetItem, \
+        PyDict_Values, PyDict_Keys, PyDict_Items
+    from cpython.list cimport PyList_Append, PyList_GetItem, PyList_Size, PyList_SetItem
+    from cpython.object cimport PyObject_SetAttr
+
+except ImportError:
+    raise ImportError("\n<cython> library is missing on your system."
+          "\nTry: \n   C:\\pip install cython on a window command prompt.")
+
+try:
     import pygame
     from pygame.math import Vector2
     from pygame import Rect, BLEND_RGB_ADD, HWACCEL
@@ -19,12 +34,16 @@ except ImportError:
 
 SCREENRECT = Rect(0, 0, 800, 1024)
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+@cython.cdivision(True)
 cdef class Player(Sprite):
 
     cdef:
         public object image, rect, mask,
         object gl
-        public int layer, life, max_life, _rotation, _blend
+        public int _layer, life, max_life, _rotation, _blend
         float timing, dt, timer
 
         float reloading_time
@@ -51,12 +70,15 @@ cdef class Player(Sprite):
 
         Sprite.__init__(self, containers_)
 
+        if PyObject_IsInstance(gl_.All, LayeredUpdates):
+            gl_.All.change_layer(self, layer_)
+
         self.image     = image_
         self.rect      = image_.get_rect(center=(pos_x, pos_y))
 
         self.mask      = mask.from_surface(image_)
         self.gl        = gl_
-        self.layer     = layer_
+        self._layer     = layer_
         self.timing    = timing_
         self.angle     = 0
         self.life      = 1000  # Player life
