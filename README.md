@@ -4,19 +4,23 @@
 Add explosions effect to your video game using the source code provided into this git page
 
 Please have also a look at the cython version to explore the same algorithm improved with 
-cython (achieving a solid 60FPS)
+cython (FPS > 300)
 
 ## Python version 
 ```
 Run the program ClusterBomb.py in your favorite python IDE 
 Requirement: 
-* Numpy
-* Python 3
+- Numpy
+- Python 3
+- Pygame
+
+C:\>pip install pygame==2.0, numpy==1.19.3
 ```
 
 ## Cython version
 
 ```
+
 Two tests version :
 
 1) ClusterMain_Collision.py 
@@ -35,13 +39,13 @@ Two tests version :
 Requirment :
 
 ```
+C:\>pip install cython, matplotlib, pygame==2.0, numpy==1.19.3 
+
 - python > 3.0
-- numpy arrays
-- pygame with SDL version 1.2 (SDL version 2 untested)
-  Cython
-- A compiler such visual studio, MSVC, CGYWIN setup correctly
-  on your system.
-  - a C compiler for windows (Visual Studio, MinGW etc) install on your system 
+- numpy==1.19.3
+- pygame
+- Cython
+- A C compiler for windows (Visual Studio, MinGW etc) install on your system 
   and linked to your windows environment.
   Note that some adjustment might be needed once a compiler is install on your system, 
   refer to external documentation or tutorial in order to setup this process.
