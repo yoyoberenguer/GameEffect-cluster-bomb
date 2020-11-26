@@ -17,19 +17,15 @@ Requirement:
 C:\>pip install pygame==2.0, numpy==1.19.3
 ```
 
-## Cython version
+## Cython version x10 faster
 
 ```
-
 Two tests version :
 
 1) ClusterMain_Collision.py 
    This version include lines of code to detect collision with background 
-   layer (or object(s) belonging to that specific layer).
+   layer (or object(s) belonging to a specific layer).
    The cluster bomb will explose only if it touch a solid ground.
-   During the calculation, the code will determine if the bomb explosion
-   rectangle (pygame.Rect) can be completely contains inside the background 
-   object (Use per-pixel images for perfect collision).
    
 2) ClusterMain_NoCollision.py
    Version without background collision detection, bombs explose regardless of the 
