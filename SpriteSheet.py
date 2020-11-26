@@ -52,7 +52,7 @@ def load_per_pixel(file: str) -> pygame.Surface:
 
 
 
-def spread_sheet_per_pixel(file_: str, chunk: int, rows_: int, columns_: int) -> list:
+def sprite_sheet_per_pixel(file_: str, chunk: int, rows_: int, columns_: int) -> list:
     """ Not to be used with asymetric surface """
     surface = pygame.image.load(file_)
     buffer_ = surface.get_view('2')
@@ -73,7 +73,7 @@ def spread_sheet_per_pixel(file_: str, chunk: int, rows_: int, columns_: int) ->
     return animation
 
 
-def spread_sheet_fs8(file: str, chunk: int, rows_: int, columns_: int, tweak_: bool = False, *args) -> list:
+def sprite_sheet_fs8(file: str, chunk: int, rows_: int, columns_: int, tweak_: bool = False, *args) -> list:
     """ surface fs8 without per pixel alpha channel """
     assert isinstance(file, str), 'Expecting string for argument file got %s: ' % type(file)
     assert isinstance(chunk, int), 'Expecting int for argument number got %s: ' % type(chunk)

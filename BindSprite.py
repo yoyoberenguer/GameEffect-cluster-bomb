@@ -25,33 +25,33 @@ import pygame
 from math import cos, sin, radians, hypot, degrees, acos, atan, copysign
 
 
-# Bind a sprite to an object optionally with an offset
-# if offset is not None, use object position with added offset
-# else use the object location.
+# Bind a sprite to an obj optionally with an offset
+# if offset is not None, use obj position with added offset
+# else use the obj location.
 
-# This class does not check if the object is still alive if you are
+# This class does not check if the obj is still alive if you are
 # not using the flag dependency.
 # The class does not check the screen boundaries, so you can display
 # the sprite at any locations.
-# More than one sprite animation can be played around the same object, the class
+# More than one sprite animation can be played around the same obj, the class
 # will not check the number of instance already running.
 # The sprite is killed eventually when all sprites have been blit onto the screen
 # except is the option loop is used.
 # Setting the dependency flag will allow the method update to check each iteration
-# if the parent object is still alive and interact with the sprite accordingly.
+# if the parent obj is still alive and interact with the sprite accordingly.
 
 class BindSprite(pygame.sprite.Sprite):
     images = None
     containers = None
 
     def __init__(self,
-                 object_,              # Parent object to use
+                 object_,              # Parent obj to use
                  gl_,                  # class global variable
                  offset_=None,         # offset default is None
                  timing_=15,           # timing default is 15
                  layer_=0,             # display sprite on layer 0 by default
                  loop_=False,          # loop sprite animation, default False
-                 dependency_ = False,  # if the object is not alive, kill the sprite
+                 dependency_ = False,  # if the obj is not alive, kill the sprite
                  follow_ = False,      # Tell the sprite to follow parent rotate_inplace
                  blend_ = None,        # Blend mode default None
                  event_ =None          # Event type
@@ -85,7 +85,7 @@ class BindSprite(pygame.sprite.Sprite):
         self.images_copy = self.images.copy()
         self.image = self.images_copy[0] if \
             isinstance(self.images, list) else self.images_copy
-        self.object = object_               # Parent object
+        self.object = object_               # Parent obj
         self.offset = offset_               # Offset from the center
         if offset_ is not None:
             self.rect = self.image.get_rect(center=(object_.rect.centerx + offset_[0],
@@ -111,8 +111,8 @@ class BindSprite(pygame.sprite.Sprite):
 
     def update(self):
 
-        # object and sprite are connected together, if
-        # object dies, the sprite is killed.
+        # obj and sprite are connected together, if
+        # obj dies, the sprite is killed.
         if self.dependency and not self.object.alive():
             self.kill()
             self.gl.All.remove(self)

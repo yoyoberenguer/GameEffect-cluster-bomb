@@ -21,8 +21,9 @@ from numpy import uint8, fromstring, array
 
 
 from BindSprite import *
-from SpriteSheet import spread_sheet_fs8, load_per_pixel, spread_sheet_per_pixel
+from SpriteSheet import sprite_sheet_fs8, load_per_pixel, sprite_sheet_per_pixel
 from Surface import reshape, add_transparency_all
+
 
 __author__ = "Yoann Berenguer"
 __copyright__ = "Copyright 2007, Cobra Project"
@@ -41,7 +42,7 @@ MAXFPS = 60
 
 class Halo(pygame.sprite.Sprite):
     """
-    Create a Halo sprite after a bomb explosion
+    Create a Halo sprite after a BOMB explosion
     """
 
     images = []
@@ -205,7 +206,7 @@ def debris(rect_, gl_, layer_):
     :param rect_: pygame.Rect that represent the debris size and shapes
     """
     # Choose debris randomly from the list EXPLOSION_DEBRIS.
-    # This method is adding debris sprites into the group VERTEX_DEBRIS and GL.ALL
+    # This method is adding debris sprites into the group DEBRIS_CONTAINER and GL.ALL
     # the sprites need to have following attributes
     # _blend : choose additive mode
     # _layer : layer to use
@@ -215,7 +216,7 @@ def debris(rect_, gl_, layer_):
     # index  : index position into the sprite animation
     # position : sprite starting position
     # NOTE : cannot display more than 500 debris onto the screen at once
-    #        over 500 sprite no more sprites will be added to the group VERTEX_DEBRIS
+    #        over 500 sprite no more sprites will be added to the group DEBRIS_CONTAINER
     # To display every particles onto the screen, you need to implement the method
     # show_debris in the game main loop in order to refresh the sprites positions and
     # control the lifetime for each sprites.
@@ -266,6 +267,7 @@ def check_background(gl_, center_):
     for sprite in sprite_pos:
         layers.append(gl_.All.get_layer_of_sprite(sprite))
     # check if the ground sprite is present otherwise we can't display the crater.
+
     if gl_.All.get_bottom_layer() not in layers:
         return False
 
@@ -279,7 +281,7 @@ def check_background(gl_, center_):
             # Checking the surface to determine if the texture is convert_alpha() or
             # convert(). We can only check the masks for surface with per-pixel information.
             # Otherwise skip the mask check and check for rect collision instead
-            if sprite.image.get_alpha() != 255:
+            if sprite.image.get_flags() & pygame.SRCALPHA == pygame.SRCALPHA:
                 point = pygame.sprite.collide_mask(sprite, crater_sprite)
 
                 if point is not None:
@@ -311,16 +313,16 @@ def check_background(gl_, center_):
 
 def display_bombing(screen):
     """
-    Display the bomb dropping from the aircraft.
+    Display the BOMB dropping from the aircraft.
     :param screen: pygame.display.get_surface()
     """
-    # 1) Show the bombs on the screen and decrease their sizes with time to simulate bomb dropping
-    # 2) when bomb texture size is null or negative, show an explosion sprite using BindSprite class
+    # 1) Show the bombs on the screen and decrease their sizes with time to simulate BOMB dropping
+    # 2) when BOMB texture size is null or negative, show an explosion sprite using BindSprite class
     # 3) Create debris flying around after explosions
     # 4) Create a crater texture following the background speed using the class GenericAnimation
-    # 5) Create a blast effect for each bomb using the class Halo
+    # 5) Create a blast effect for each BOMB using the class Halo
     # display the sprite onto the screen and kill the sprite whenever it goes outside the screen limits.
-    # When the sprite is killed, it is automatically removed from the group VERTEX_BOMB.
+    # When the sprite is killed, it is automatically removed from the group BOMB_CONTAINER.
     # A sprite is killed only in two cases :
     # 1) it goes outside the screen and cannot be display
     # 2) Bomb texture size is null or negative.
@@ -337,12 +339,12 @@ def display_bombing(screen):
             sprite.rect = sprite.image.get_rect(center=sprite.position)
             w, h = sprite.image_copy.get_size()
 
-            try:
+            new_w = round(w - sprite.index)
+            new_h = round(h - sprite.index)
+            if new_w > 1 and new_h > 1:
                 # decrease texture size each iteration until ValueError (null or negative size)
-                sprite.image = pygame.transform.scale(sprite.image_copy,
-                                        (round(w - sprite.index), round(h - sprite.index)))
-            except ValueError:
-
+                sprite.image = pygame.transform.scale(sprite.image_copy, (new_w, new_h))
+            else:
                 if not check_background(GL, sprite.rect.center):
                     sprite.kill()
                     continue
@@ -364,7 +366,7 @@ def display_bombing(screen):
                            event_=None                      # not needed
                            )
 
-                # Place a crater on the screen for each bomb (use additive mode)
+                # Place a crater on the screen for each BOMB (use additive mode)
                 # GenericAnimation.images = CRATER
                 # GenericAnimation.containers = GL.All
                 # generic = GenericAnimation(timing_=1, gl_=GL, center_=sprite.rect.center, layer_=-1)
@@ -375,7 +377,7 @@ def display_bombing(screen):
                 GL.SC_explosion.play(EXPLOSION_SOUND[randint(0, len(EXPLOSION_SOUND) - 1)],
                                      False, 0, 1, 0, True, 'BOOM', x_=sprite.rect.w)
 
-                # create flying debris for each bomb (5 debris)
+                # create flying debris for each BOMB (5 debris)
                 for r in range(10):
                     debris(sprite.rect, GL, -2)
 
@@ -387,7 +389,7 @@ def display_bombing(screen):
                                   layer_=-4, loop_=False, dependency_=False,
                                   follow_=False, event_='FLASH', blend_=pygame.BLEND_RGB_ADD)
                 """
-                # Create a halo explosion for each bomb (blast)
+                # Create a halo explosion for each BOMB (blast)
                 Halo.images = [HALO_SPRITE11, HALO_SPRITE13][randint(0, 1)]     # surface(s) to use
                 Halo.containers = GL.All                                        # pygame group
                 Halo(sprite.rect, 10, layer_=-4)                                # adjust the layer level if you want to
@@ -421,28 +423,28 @@ def bombing(rect_,
             layer_: int
             ):
     """
-    Create a bomb and put it into the VERTEX_BOMB group
+    Create a BOMB and put it into the BOMB_CONTAINER group
     :param rect_:       pygame.Rect
-    :param surface_:    bomb sprite (pygame.Surface)
+    :param surface_:    BOMB sprite (pygame.Surface)
     :param layer_:      Layer to use
     """
 
-    # Create bomb sprite and add it to VERTEX_BOMB (pygame group)
+    # Create BOMB sprite and add it to BOMB_CONTAINER (pygame group)
     # Each sprite are set with specific attributes
-    # angle : angle the bomb will follow, e.g 180 degrees will mean that the bomb is shot at 180 degrees from the
+    # angle : angle the BOMB will follow, e.g 180 degrees will mean that the BOMB is shot at 180 degrees from the
     # player center position.
     # vector: vector corresponding to the angle direction and set to a unique speed ( * uniform(0.2, 3))
-    #         uniform will determine the bomb spread velocity. 0.2 to allow bomb to drop nearby the spaceship and 3
+    #         uniform will determine the BOMB spread velocity. 0.2 to allow BOMB to drop nearby the spaceship and 3
     #         for a larger spread.
     # _blend : use additive mode
     # image  : texture to use (pygame.Surface)
     # rect   : rectangle (pygame.Rect), for positioning
     # mask   : for mask collision checks
     # This method is use prior using the method display_bombing.
-    # All bomb sprites are passed into the VERTEX_BOMB for head counting and display.
+    # All BOMB sprites are passed into the BOMB_CONTAINER for head counting and display.
     # Use the method display_bombing inside the main loop to refresh the sprite onto the screen, calling the classic
     # pygame method update() from the main loop will have no effect.
-    # This method does not control the sprite bomb population, in fact it keep adding sprite to VERTEX_BOMB.
+    # This method does not control the sprite BOMB population, in fact it keep adding sprite to BOMB_CONTAINER.
     # The method display_bombing will display the sprite and adjust the position onto the screen and control
     # its lifetime.
     bombsprite = pygame.sprite.Sprite()
@@ -539,7 +541,7 @@ if __name__ == '__main__':
 
             self.mask = pygame.mask.from_surface(self.image)
             self.gl = gl_
-            self.layer = layer_
+            self._layer = layer_
             self.timing = timing_
             self.angle = 0
             self.life = 1000        # Player life
@@ -553,7 +555,7 @@ if __name__ == '__main__':
     SCREENRECT = pygame.Rect(0, 0, 800, 1024)
     GL.SCREENRECT = SCREENRECT
     pygame.display.init()
-    SCREEN = pygame.display.set_mode(SCREENRECT.size, pygame.HWACCEL, 32)
+    SCREEN = pygame.display.set_mode(SCREENRECT.size,  32)
     GL.screen = SCREEN
     pygame.init()
     pygame.mixer.pre_init(44100, 16, 2, 4095)
@@ -564,12 +566,12 @@ if __name__ == '__main__':
     bomb = pygame.transform.smoothscale(bomb, (int(w / 30), int(h / 30)))
 
     # *** Explosions sprites
-    EXPLOSION1 = spread_sheet_fs8('Assets\\Explosion8_256x256_.png', 256, 6, 6)
-    EXPLOSION2 = spread_sheet_fs8('Assets\\Explosion9_256x256_.png', 256, 6, 8)
-    EXPLOSION3 = spread_sheet_fs8('Assets\\Explosion10_256x256_.png', 256, 6, 7)
-    EXPLOSION4 = spread_sheet_fs8('Assets\\Explosion11_256x256_.png', 256, 6, 7)
-    EXPLOSION5 = spread_sheet_fs8('Assets\\Explosion12_256x256_.png', 256, 6, 7)
-    EXPLOSION6 = spread_sheet_fs8('Assets\\Explosion12_256x256_.png', 256, 6, 7)
+    EXPLOSION1 = sprite_sheet_fs8('Assets\\Explosion8_256x256_.png', 256, 6, 6)
+    EXPLOSION2 = sprite_sheet_fs8('Assets\\Explosion9_256x256_.png', 256, 6, 8)
+    EXPLOSION3 = sprite_sheet_fs8('Assets\\Explosion10_256x256_.png', 256, 6, 7)
+    EXPLOSION4 = sprite_sheet_fs8('Assets\\Explosion11_256x256_.png', 256, 6, 7)
+    EXPLOSION5 = sprite_sheet_fs8('Assets\\Explosion12_256x256_.png', 256, 6, 7)
+    EXPLOSION6 = sprite_sheet_fs8('Assets\\Explosion12_256x256_.png', 256, 6, 7)
     EXPLOSION6 = reshape(EXPLOSION6, (256, 256))
     rnd = randint(128, 256)
     EXPLOSION1 = reshape(EXPLOSION1, (rnd, rnd))
@@ -599,7 +601,7 @@ if __name__ == '__main__':
     CRATER = pygame.image.load('Assets\\Crater2_.png')
     CRATER = pygame.transform.smoothscale(CRATER, (32, 32)).convert_alpha()
     CRATER_MASK = pygame.mask.from_surface(CRATER)
-    SMOKE = spread_sheet_fs8('Assets\\Laval1_256_6x6_.png', 256, 6, 6)
+    SMOKE = sprite_sheet_fs8('Assets\\Laval1_256_6x6_.png', 256, 6, 6)
     SMOKE = reshape(SMOKE, (32, 32))
 
     clock = pygame.time.Clock()
@@ -633,8 +635,8 @@ if __name__ == '__main__':
     GL.GROUP_UNION = pygame.sprite.Group()
     GL.enemy_group = pygame.sprite.Group()
     SoundControl.SCREENRECT = SCREENRECT
-    GL.SC_spaceship = SoundControl(60)
-    GL.SC_explosion = SoundControl(60)
+    GL.SC_spaceship = SoundControl(SCREENRECT, 60)
+    GL.SC_explosion = SoundControl(SCREENRECT, 60)
     GL.SOUND_LEVEL = 1.0
 
     # *** Debris sprites
@@ -729,7 +731,7 @@ if __name__ == '__main__':
     em = pygame.sprite.Group()
     hm = pygame.sprite.Group()
 
-    recording = False  # allow recording video
+    recording = False  # allow RECORDING video
     VIDEO = []  # Capture frames
     trumble = 2
     while not STOP_GAME:
@@ -811,7 +813,7 @@ if __name__ == '__main__':
             show_debris(SCREEN)
 
         # Cap the speed at 60 FPS
-        GL.TIME_PASSED_SECONDS = clock.tick(60)
+        GL.TIME_PASSED_SECONDS = clock.tick(MAXFPS)
 
         pygame.display.flip()
 
