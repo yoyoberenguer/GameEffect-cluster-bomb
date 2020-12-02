@@ -12,12 +12,14 @@ Install the program using Setup_ClusterBomb.exe
 ```
 
 ## KEYS
+```
 spacebar : drop cluster bomb 
 up       : spaceship move up 
 down     : spaceship move down 
 right    : spaceship move right
 left     : move left
 esc      : quit
+```
 
 ## Python version 
 ```
