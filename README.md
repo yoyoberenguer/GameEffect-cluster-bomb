@@ -6,6 +6,11 @@ Add explosions effect to your video game using the source code provided into thi
 Please have also a look at the cython version to explore the same algorithm improved with 
 cython (FPS > 300)
 
+## New release 
+```
+Install the program using Setup_ClusterBomb.exe
+```
+
 ## Python version 
 ```
 Run the program ClusterBomb.py in your favorite python IDE 
