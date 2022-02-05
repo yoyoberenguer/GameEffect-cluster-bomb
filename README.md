@@ -1,5 +1,5 @@
 
-# Game Effect - cluster bomb 
+# 2D video Game Effect - cluster bomb
 
 Add explosions effect to your video game using the source code provided into this git page
 
@@ -8,6 +8,7 @@ cython (FPS > 300)
 
 ## New release 
 ```
+click to the new version to download the demo 
 Install the program using Setup_ClusterBomb.exe
 ```
 
@@ -34,20 +35,22 @@ C:\>pip install pygame==2.0, numpy==1.19.3
 
 ## Cython version x10 faster
 
-```
+
 Two tests version :
 
 1) ClusterMain_Collision.py 
    This version include lines of code to detect collision with background 
    layer (or object(s) belonging to a specific layer).
-   The cluster bomb will explose only if it touch a solid ground.
+   The cluster bomb will explose only if it touch a solid ground (specific layer 
+   collision detection).
    
 2) ClusterMain_NoCollision.py
    Version without background collision detection, bombs explose regardless of the 
    background image (fastest version).
    Bombs and background can be converted for fast blit (FPS over 100FPS).
-```
-Requirment :
+
+
+## Requirment :
 
 ```
 C:\>pip install cython, matplotlib, pygame==2.0, numpy==1.19.3 
@@ -63,7 +66,7 @@ C:\>pip install cython, matplotlib, pygame==2.0, numpy==1.19.3
   e.g https://devblogs.microsoft.com/python/unable-to-find-vcvarsall-bat/
 ```
 
-Compilation : 
+## Compilation : 
 ```
 In a command prompt and under the directory containing the source files
 C:\>python setup_Project.py build_ext --inplace
