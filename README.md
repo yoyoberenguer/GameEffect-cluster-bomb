@@ -1,6 +1,10 @@
 
 # 2D video Game Effect - cluster bomb
 
+<p align="center">
+    <img src="https://github.com/yoyoberenguer/PygameShader/blob/main/bombing.gif?raw=true">
+</p>
+
 Add explosions effect to your video game using the source code provided into this git page
 
 Please have also a look at the cython version to explore the same algorithm improved with 
